@@ -1,0 +1,9 @@
+nav{
+    background-color: aquamarine;
+   height: 40px;
+}
+
+.navitem{
+    margin:40px;
+    text-decoration: none;
+}
