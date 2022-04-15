@@ -1,47 +1,66 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Item from "./Item";
+import { ItemCard } from "./ItemCard";
+import Button from "react-bootstrap/Button";
 
-const ListView = () => {
-    const params= useParams();
-    console.log("~ params", params)
+const ListView = ({name}) => {
+  const pageSize = 20;
+  const [page, setPage] = useState(1);
+  const params = useParams();
 
-  const url =
-    `https://pim.wforwoman.com/pim/pimresponse.php/?service=category&store=1&url_key=${params.apple}&page=2&count=5&sort_by=&sort_dir=desc&filter=`;
+  console.log("~ params", params);
 
-
+  const url = `https://pim.wforwoman.com/pim/pimresponse.php/?service=category&store=1&url_key=${name}&page=${page}&count=${pageSize}&sort_by=&sort_dir=desc&filter=`;
 
   const [items, setItems] = useState([]);
+  const [totalItems, setTotalItems] = useState(0);
+  console.log("~ totalItems", totalItems)
+  console.log("~ pages", pageSize)
+
+  const prevPage = () => {
+    //  setPage(page-1);
+    // fetch(
+    //   `https://pim.wforwoman.com/pim/pimresponse.php/?service=category&store=1&url_key=${
+    //     params.apple
+    //   }&page=${page - 1}&count=${pageSize}&sort_by=&sort_dir=desc&filter=`
+    // )
+    setPage((prevPage)=>prevPage-1);
+      fetch(url)
+      .then((list) => list.json())
+      .then((res) => setItems(res.result.products));
+
+    setTotalItems();
+
+    setPage(page - 1);
+  };
+  const nextPage = () => {
+    setPage((prevPage)=>prevPage+1);
+
+    fetch(url)
+      .then((list) => list.json())
+      .then((res) => setItems(res.result.products));
+  };
 
   useEffect(() => {
     fetch(url)
       .then((item) => item.json())
-      .then((resp) => setItems(resp.result.products));
+      .then((resp) => {
+        setItems(resp.result.products);
+        setTotalItems(resp.result.count);
+      });
   }, []);
 
   console.log("items", items);
 
-  const obj = {
-    id_product: "79565",
-    sku: "21AUW14029-311668",
-    name: "Sage Green Jacquard Kurta with Embroidery",
-    price: "2999",
-    selling_price: "1499",
-    discount: "50",
-    quantity: "0",
-    visibility: "show",
-    description:
-      "Sage green straight jacquard kurta in round neck and three-quarter sleeves. It also feautures metallic embroidery.",
-    image:
-      "https://wforwoman.gumlet.io/product/21AUW14029-311668/300/21AUW14029-311668_1.JPG",
-  };
 
   return (
-    <div>
+    <div className="col">
+    <div className="d-flex flex-wrap m-2">
       {items.map((item) => {
         return (
           <div>
-            <Item
+            <ItemCard
               name={item.name}
               price={item.price}
               desc={item.description}
@@ -51,6 +70,21 @@ const ListView = () => {
           </div>
         );
       })}
+
+    </div>
+
+      <div className="d-flex justify-content-between">
+        <Button variant="dark" onClick={prevPage} disabled={page <= 1}>
+          &lt; &lt;Prev
+        </Button>{" "}
+        <Button
+          variant="dark"
+          onClick={nextPage}
+          disabled={page>=Math.ceil(totalItems / pageSize)}
+        >
+          Next &gt; &gt;
+        </Button>{" "}
+      </div>
     </div>
   );
 };
